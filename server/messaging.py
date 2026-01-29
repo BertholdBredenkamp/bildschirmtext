@@ -4,6 +4,10 @@ import re
 import json
 import time
 import datetime
+import logging
+
+#l = logging.getLogger("btx." + __name__)
+logging.basicConfig(filename='../errorlog/debug.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 from cept import Cept
 from user import User
@@ -40,6 +44,7 @@ class Messaging:
 
 	def __init__(self, u):
 		self.user = u
+		logging.info('Messaging init')
 
 	def dict_filename(user_id, ext):
 		return PATH_MESSAGES + user_id + "-" + ext + ".messages"
@@ -224,6 +229,8 @@ class Messaging_UI:
 
 		message = messages[0]
 
+# Bre - 27.01.26 - Input Feld hinzu zum löschen der Nachricht
+
 		meta = {
 			"publisher_name": "Bildschirmtext",
 			"include": "11a",
@@ -231,9 +238,10 @@ class Messaging_UI:
 			"clear_screen": True,
 			"links": {
 				"0": "89" if is_read else "88",
+                                "19": "89"
 			},
 			"publisher_color": 7
-		}
+		    }
 
 		from_date = message.from_date()
 		from_time = message.from_time()
@@ -277,13 +285,14 @@ class Messaging_UI:
 		data_cept.extend(b'\r\n\n')
 		data_cept.extend(Cept.from_str(message.body()))
 		data_cept.extend(Cept.set_cursor(23, 1))
+		data_cept.extend(Cept.set_line_bg_color_simple(4))
 		data_cept.extend(b'0')
 		data_cept.extend(
 			b'\x1b\x29\x20\x40'                                    # load DRCs into G1
 			b'\x1b\x7e'                                            # G1 into right charset
 		)
-		data_cept.extend(Cept.from_str(" Gesamtübersicht"))
-		data_cept.extend(Cept.repeat(" ", 22))
+		data_cept.extend(Cept.from_str(" Übersicht                   19 Löschen"))
+#		data_cept.extend(Cept.repeat(" ", 11))
 
 		user.messaging.mark_as_read(message.index)
 

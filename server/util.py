@@ -30,6 +30,9 @@ class Util:
 			text = "Rückblättern nicht möglich     "
 		elif code == 44:
 			text = "Absenden? Ja:19 Nein:2         "
+# Bre - 27.01.26 Löschen hinzu
+		elif code == 45:
+			text = "Löschen? Ja:19 Nein:2         "
 		elif code == 47:
 			text = "Absenden für " + Util.format_currency(price) + "? Ja:19 Nein:2"
 		elif code == 55:
@@ -38,6 +41,12 @@ class Util:
 			current_datetime = datetime.datetime.now().strftime("%d.%m.%Y %H:%M")
 			text = "Abgesandt " + current_datetime + ", -> #  "
 			prefix = "1B"
+# Bre - 27.01.26 Code 74 hinzu
+		elif code == 74:
+			current_datetime = datetime.datetime.now().strftime("%d.%m.%Y %H:%M")
+			text = "Nachricht Gelöscht " + current_datetime + ", -> #  "
+			prefix = "1B"
+
 		elif code == 100 or code == 101:
 			text = "Seite nicht vorhanden          "
 		elif code == 291:

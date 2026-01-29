@@ -1,11 +1,14 @@
+
 import sys
 import re
 import json
 import pprint
+import urllib
 import urllib.parse
 import urllib.request
 
 from bs4 import BeautifulSoup
+from urllib.request import urlopen, Request
 
 from cept import Cept
 from cept import Cept_page
@@ -127,7 +130,7 @@ class MediaWiki:
 	search_string = None
 	pageid_prefix = None
 	id = None
-	api_prefix = "/wiki/"
+	api_prefix = "/w/"
 	article_prefix = "/wiki/index.php/"
 	image = "wikipedia.png"
 
@@ -142,17 +145,27 @@ class MediaWiki:
 		mediawiki_from_id.append(self)
 
 	def fetch_json_from_server(self, url):
-		j = self.http_cache.get(url)
-		if not j :
-			sys.stderr.write("URL: " + pprint.pformat(url) + "\n")
-			contents = urllib.request.urlopen(url).read()
-			j = json.loads(contents.decode("utf-8"))
-#			sys.stderr.write("RESPONSE: " + pprint.pformat(j) + "\n")
-			self.http_cache[url] = j
-		return j
+	    try:
+		    sys.stderr.write("URL1: " + pprint.pformat(url) + "\n")
+		    j = self.http_cache.get(url)
+		    if not j :
+			    sys.stderr.write("URL: " + pprint.pformat(url) + "\n")
+#			     contents = urllib.request.urlopen(url).read()
+			    req = Request(url=url, headers={'User-Agent': 'Mozilla/5.0'})
+			    contents = urlopen(req).read()
+			    j = json.loads(contents.decode("utf-8"))
+# Bre 
+			    sys.stderr.write("RESPONSE: " + pprint.pformat(j) + "\n")
+			    self.http_cache[url] = j
+		    return j
+	    except Exception as e:
+		    sys.stderr.write("ERROR: " + pprint.pformat(e) + "\n")
+    
 
 	def title_for_search(self, search):
 		sys.stderr.write("search: " + pprint.pformat(search) + "\n")
+		sys.stderr.write("search1: " + self.wiki_url + self.api_prefix + "api.php?action=opensearch&search=" + urllib.parse.quote_plus(search) + "&format=json" + "\n")
+
 		j = self.fetch_json_from_server(self.wiki_url + self.api_prefix + "api.php?action=opensearch&search=" + urllib.parse.quote_plus(search) + "&format=json")
 		links = j[3]
 		if not links:
@@ -182,7 +195,7 @@ class MediaWiki:
 		j = self.fetch_json_from_server(self.wiki_url + self.api_prefix + "api.php?action=parse&prop=text&pageid=" + str(wikiid) + "&format=json")
 		try:
 			title = j["parse"]["title"]
-		except: 
+		except:
 			title = "ERROR"
 		html = j["parse"]["text"]["*"]
 		return (title, html)

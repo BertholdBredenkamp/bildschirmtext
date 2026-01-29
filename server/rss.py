@@ -20,9 +20,11 @@ class RSS_UI:
 		is_first_page = sheet_number == 0
 
 		if not RSS_UI.feed:
-			RSS_UI.feed = feedparser.parse("https://www.pagetable.com/?feed=rss2")
+#			RSS_UI.feed = feedparser.parse("https://www.pagetable.com/?feed=rss2")
+			RSS_UI.feed = feedparser.parse("https://www.spiegel.de/index.rss")
 
-		entry = RSS_UI.feed["entries"][6]
+#		entry = RSS_UI.feed["entries"][6]	# 6. Eintrag in der Liste der Beiträge
+		entry = RSS_UI.feed["entries"][0]
 		title = entry["title"]
 		html = entry["content"][0]["value"]
 		soup = BeautifulSoup(html, 'html.parser')
@@ -35,7 +37,8 @@ class RSS_UI:
 		meta = {
 			"clear_screen": True,
 			"links": {
-				"0": "0"
+				"0": "0",
+                                "8": "89"
 			},
 			"publisher_color": 0
 		}

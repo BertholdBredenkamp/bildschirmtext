@@ -268,7 +268,7 @@ def create_page(pageid):
 		basedir = PATH_DATA + "55/"
 	if not ret and pageid.startswith("6502"):
 		# RSS
-		basedir = PATH_DATA + "55/"
+		basedir = PATH_DATA + "6502/"
 		ret = RSS_UI.create_page(pageid, basedir)
 
 	if ret:
@@ -413,6 +413,13 @@ def system_message_sent_message():
 	sys.stdout.flush()
 	Util.wait_for_ter()
 
+def system_message_remove_message():
+	# "remove" message
+	sys.stdout.buffer.write(Util.create_system_message(74))
+	sys.stdout.flush()
+	Util.wait_for_ter()
+
+
 def handle_inputs(inputs):
 	# create editors and draw backgrounds
 	editors = []
@@ -472,6 +479,10 @@ def handle_inputs(inputs):
 			if inputs.get("action") == "send_message":
 				User.user().messaging.send(input_data["user_id"], input_data["ext"], input_data["body"])
 				system_message_sent_message()
+			elif inputs.get("action") == "delete_message":
+#				User.user().messaging.removekey(input_data["user_id"], input_data["ext"], input_data["body"])
+				system_message_remove_message()
+
 			else:
 				pass # TODO we stay on the page, in the navigator?
 	elif not inputs.get("no_55", False):
