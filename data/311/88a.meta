@@ -1,0 +1,11 @@
+{
+    "include": "a",
+    "palette": "a",
+    "clear_screen": true,
+    "cls2": true,
+    "links": {
+        "0": "0a",
+        "1": "8211882a"
+    },
+    "publisher_color": 7
+}

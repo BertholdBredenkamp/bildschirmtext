@@ -1,8 +1,9 @@
 {
+    "palette": "a",
     "clear_screen": true,
+    "cls2": true,
     "links": {
-    	"0": "0",
-    	"1": "10401132"
+        "0": "55300a"
     },
     "publisher_color": 7
 }

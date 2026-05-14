@@ -1,0 +1,11 @@
+{
+    "clear_screen": true,
+    "cls2": true,
+    "links": {
+        "0": "0a",
+        "10": "533010a",
+        "11": "533011a",
+        "12": "55300a"
+    },
+    "publisher_color": 2
+}

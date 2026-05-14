@@ -430,7 +430,7 @@ class MediaWiki_UI:
 		return
 
 	def create_page(pageid, basedir):
-		WIKIPEDIA_PAGEID_PREFIX = "55"
+		WIKIPEDIA_PAGEID_PREFIX = "50"
 		CONGRESS_PAGEID_PREFIX = "35"
 		C64_PAGEID_PREFIX = "45"
 		if re.search("^" + WIKIPEDIA_PAGEID_PREFIX + "\d", pageid):

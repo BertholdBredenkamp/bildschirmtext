@@ -66,20 +66,31 @@ from historic import Historic_UI
 from wikipedia import MediaWiki_UI
 from image import Image_UI
 from rss import RSS_UI
+from etb import ETB_UI
+from suche_stichwort import SUCHE_STICHWORT_UI
+from suche_stichwort import SUCHE_STICHWORT_DB
 
 from cm.makePage import CM
 
+from search_db import search_index_by_keyword
 # paths
 PATH_DATA = "../data/"
 
+# Datenbank
+DB_NAME = "/var/lib/phpliteadmin/btx.db"
+TABLE_NAME = "schlagworte"
+COLUMN_NAME = "suchtext"
+
 # globals
 
+aktuelle_seite = ""
 last_filename_palette = ""
 last_filename_include = ""
 links = {}
 
 baud = 0
 chunk_size = 16
+gefundene_stichworte = None
 
 # how many seconds does pal/char transmission have to take
 # until we show the SH291 message
@@ -199,7 +210,7 @@ def create_preamble(basedir, meta):
 		last_filename_palette = ""
 
 	if "include" in meta:
-		if os.path.isfile( basedir + meta["include"] + ".inc"):
+		if os.path.isfile( basedir + meta["include"] + ".inc") or os.path.isfile( basedir + meta["include"] + ".inc.cm"):
 			filename_include_cm = basedir + meta["include"] + ".inc.cm"
 			filename_include = basedir + meta["include"] + ".inc"
 		else:
@@ -234,6 +245,8 @@ def create_preamble(basedir, meta):
 def create_page(pageid):
 	ret = None
 	# generated pages
+	sys.stderr.write("Neu-Ulm Test 10 " + pprint.pformat(pageid) + " - " + pprint.pformat(ret) + "\n")
+
 	if pageid.startswith("00000") or pageid == "9a":
 		# login
 		ret = Login_UI.create_page(User.user(), pageid)
@@ -250,26 +263,39 @@ def create_page(pageid):
 		# messaging
 		ret = Messaging_UI.create_page(User.user(), pageid)
 		basedir = PATH_DATA + "8/"
-	if not ret and pageid.startswith("55"):
+	if not ret and pageid.startswith("50"):
 		# wikipedia
-		basedir = PATH_DATA + "55/"
+		basedir = PATH_DATA + "50/"
 		ret = MediaWiki_UI.create_page(pageid, basedir)
-	if not ret and pageid.startswith("35"):
-		# Congress Wiki
-		basedir = PATH_DATA + "55/"
-		ret = MediaWiki_UI.create_page(pageid, basedir)
-	if not ret and pageid.startswith("45"):
-		# c64 wiki
-		basedir = PATH_DATA + "45/"
-		ret = MediaWiki_UI.create_page(pageid, basedir)
+#	if not ret and pageid.startswith("35"):
+#		# Congress Wiki
+#		basedir = PATH_DATA + "50/"
+#		ret = MediaWiki_UI.create_page(pageid, basedir)
+#	if not ret and pageid.startswith("45"):
+#		# c64 wiki
+#		basedir = PATH_DATA + "45/"
+#		ret = MediaWiki_UI.create_page(pageid, basedir)
 	if not ret and pageid.startswith("666"):
 		# images
+		basedir = PATH_DATA + "66/"
 		ret = Image_UI.create_page(pageid)
-		basedir = PATH_DATA + "55/"
 	if not ret and pageid.startswith("6502"):
 		# RSS
 		basedir = PATH_DATA + "6502/"
+		sys.stderr.write("Neu-Ulm 6502 " + pprint.pformat(pageid) + " - " + pprint.pformat(basedir) + "\n")
 		ret = RSS_UI.create_page(pageid, basedir)
+	if not ret and pageid.startswith("3001188"):
+		# ETB
+		basedir = PATH_DATA + "300/"
+		sys.stderr.write("Neu-Ulm ETB " + pprint.pformat(pageid) + " - " + pprint.pformat(basedir) + "\n")
+		ret = ETB_UI.create_page(pageid, basedir)
+
+	sys.stderr.write("Neu-Ulm Suche 3" + pprint.pformat(pageid) + "\n")
+
+	if not ret and pageid == "00002a":
+		basedir = PATH_DATA + "00002/"
+		sys.stderr.write("Neu-Ulm Suche " + pprint.pformat(pageid) + " - " + pprint.pformat(basedir) + "\n")
+		ret = SUCHE_STICHWORT_UI.create_page(gefundene_stichworte)
 
 	if ret:
 		(meta, data_cept) = ret
@@ -374,11 +400,19 @@ def decode_call(s, arg1):
 		return None
 
 def confirm(inputs): # "send?" message
+	# Bre Abfrage löschen anzeigen
 	price = inputs.get("price", 0)
+	loeschen = False
+	if (inputs.get("action") == "delete_message"):
+		loeschen = True
 	if price > 0:
 		cept_data = bytearray(Util.create_system_message(47, price))
 	else:
-		cept_data = bytearray(Util.create_system_message(44))
+		if loeschen:
+			cept_data = bytearray(Util.create_system_message(45))
+		else:
+			cept_data = bytearray(Util.create_system_message(44))
+
 	cept_data.extend(Cept.set_cursor(24, 1))
 	cept_data.extend(Cept.sequence_end_of_page())
 	sys.stdout.buffer.write(cept_data)
@@ -480,8 +514,17 @@ def handle_inputs(inputs):
 				User.user().messaging.send(input_data["user_id"], input_data["ext"], input_data["body"])
 				system_message_sent_message()
 			elif inputs.get("action") == "delete_message":
-#				User.user().messaging.removekey(input_data["user_id"], input_data["ext"], input_data["body"])
+				sys.stderr.write("Bre - Delete_message: " + "\n")
+				sys.stderr.write("Bre . User: " + User.user().user_id + "\n")
+				# Nachrichtenindex ermitteln
+				sys.stderr.write("Bre showing page 2: '" + aktuelle_seite + "'\n")
+
+				zaehler = int(aktuelle_seite[2:3]) -1
+				sys.stderr.write("Bre . Zaehler: " + str(zaehler) + "\n")
+
+				User.user().messaging.remove_message(zaehler)
 				system_message_remove_message()
+				sys.stderr.write("Bre - Delete_message erledigt: " + "\n")
 
 			else:
 				pass # TODO we stay on the page, in the navigator?
@@ -614,9 +657,28 @@ while True:
 			error = 0
 			add_to_history = False
 		elif desired_pageid:
-			sys.stderr.write("showing page: '" + desired_pageid + "'\n")
+			sys.stderr.write("Bre showing page: '" + desired_pageid + "'\n")
+			# Bre - 12.05.26 - Abfrage auf Stichwort hinzu
+			#		   Abfrage auf eindeutige Seite fehlt noch
+			found_pageids = None
+			if desired_pageid[:-1].isdigit():
+				sys.stderr.write("Seiten Wert ist nummerich: '" + desired_pageid + "'\n")
+			else:
+				sys.stderr.write("Seiten Wert ist nicht nummerich: '" + desired_pageid + "'\n")
+				gefundene_stichworte = SUCHE_STICHWORT_DB.search_index_by_keyword(DB_NAME, TABLE_NAME, COLUMN_NAME, desired_pageid)
+				if gefundene_stichworte is None:
+					sys.stderr.write("Seiten Schlagwort nicht gefunden: '" + desired_pageid + "'\n")
+				elif len(gefundene_stichworte) == 1:
+					sys.stderr.write("Ein Wert gefunden: '" + desired_pageid + "'\n")
+					desired_pageid = gefundene_stichworte[0][1] + "a"
+				elif len(gefundene_stichworte) > 1:
+					desired_pageid = "00002a"
+					sys.stderr.write("Ein mehrerer Werte gefunden: '" + desired_pageid + "'\n")
 			try:
+				ret = None
 				ret = create_page(desired_pageid)
+				aktuelle_seite = desired_pageid
+#				sys.stderr.write("Bre 2 Ein mehrerer Werte gefunden: '" + gefundene_stichworte[0] + "'\n")
 			except:
 				error=10
 
@@ -714,4 +776,5 @@ while True:
 		else:
 			error = 100
 			desired_pageid = None
+		sys.stderr.write("Neu-Ulm desired_pageid : " + pprint.pformat(desired_pageid) + "\n")
 

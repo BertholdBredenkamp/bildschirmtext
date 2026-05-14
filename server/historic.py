@@ -245,6 +245,7 @@ class Historic_UI:
 		if pagenumber == "78a":
 			return Historic_UI.create_historic_main_page()
 		elif re.search("^7\d\d\w$", pagenumber):
+			sys.stderr.write("Historic: " + pprint.pformat(pagenumber) + "\n")
 			return Historic_UI.create_historic_overview(int(pagenumber[1:3]), ord(pagenumber[3]) - ord('a'))
 		else:
 			return None

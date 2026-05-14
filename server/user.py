@@ -54,6 +54,7 @@ class User():
 	zip = None
 	city = None
 	country = None
+	itelex = None
 
 	stats = None
 	messaging = None
@@ -107,6 +108,7 @@ class User():
 			user.zip = dict.get("zip", "")
 			user.city = dict.get("city", "")
 			user.country = dict.get("country", "")
+			user.itelex = dict.get("itelex", "")
 			user.stats = Stats(user)
 		
 		user.messaging = Messaging(user)
@@ -138,6 +140,40 @@ class User():
 		with open(secrets_filename, 'w') as f:
 			json.dump(secrets_dict, f)
 		return True
+
+
+	@classmethod
+	def modify(cls, user_id, ext, salutation, last_name, first_name, street, zip, city, country, itelex):
+		user_filename = User.user_filename(user_id, ext)
+		sys.stderr.write("Global User: " + pprint.pformat(global_user.user_id) + "\n")
+
+#		secrets_filename = User.secrets_filename(user_id, ext)
+		# if the user exists, don't overwrite it!
+		if os.path.isfile(user_filename):
+			sys.stderr.write("already exists: " + pprint.pformat(user_filename) + "\n")
+#			return False
+			user_dict = {
+				"salutation": salutation,
+				"first_name": first_name,
+				"last_name": last_name,
+				"street": street,
+				"zip": zip,
+				"city": city,
+				"country": country,
+				"itelex": itelex
+			}
+		else:
+			sys.stderr.write("User File not exists: " + pprint.pformat(user_filename) + "\n")
+			return False
+		with open(user_filename, 'w') as f:
+			json.dump(user_dict, f)
+#		secrets_dict = {
+#			"password": password
+#		}
+#		with open(secrets_filename, 'w') as f:
+#			json.dump(secrets_dict, f)
+		return True
+
 
 	@classmethod
 	def login(cls, user_id, ext, password, force = False):
@@ -236,7 +272,7 @@ class User_UI:
 						"line": 6,
 						"column": 19,
 						"height": 1,
-						"width": 10,
+						"width": 12,
 						"bgcolor": 12,
 						"fgcolor": 3,
 						"type": "number",
@@ -279,7 +315,7 @@ class User_UI:
 						"line": 10,
 						"column": 9,
 						"height": 1,
-						"width": 20,
+						"width": 25,
 						"bgcolor": 12,
 						"fgcolor": 3
 					},
@@ -423,7 +459,7 @@ class User_UI:
 		data_cept.extend(User_UI.create_title("Neuen Benutzer einrichten"))
 		data_cept.extend(b"\r\n")
 		data_cept.extend(Cept.from_str("Teilnehmernummer:"))
-		data_cept.extend(Cept.set_cursor(6, 29))
+		data_cept.extend(Cept.set_cursor(6, 31))
 		data_cept.extend(Cept.from_str("-1"))
 		data_cept.extend(b"\r\n")
 		data_cept.extend(Cept.from_str("Anrede:"))
@@ -457,6 +493,259 @@ class User_UI:
 		data_cept.extend(b"\r\n\r\n")
 		data_cept.extend(User_UI.line())
 		return (meta, data_cept)
+#
+	def modify_user(user):
+		meta = {
+			"publisher_name": "!BTX",
+			"include": "a",
+			"clear_screen": True,
+			"links": {
+				"0": "0",
+				"1": "88",
+				"2": "89",
+				"5": "810"
+			},
+			"inputs": {
+				"fields": [
+					{
+						"name": "salutation",
+						"hint": "Anrede oder # eingeben",
+						"line": 7,
+						"column": 9,
+						"height": 1,
+						"width": 20,
+						"bgcolor": 12,
+						"default": global_user.salutation,
+						"fgcolor": 3
+					},
+					{
+						"name": "last_name",
+						"hint": "Nachnamen oder # eingeben",
+						"line": 8,
+						"column": 7,
+						"height": 1,
+						"width": 20,
+						"bgcolor": 12,
+						"default": global_user.last_name,
+						"validate": "call:User_UI.callback_validate_last_name",
+						"fgcolor": 3
+					},
+					{
+						"name": "first_name",
+						"hint": "Vornamen oder # eingeben",
+						"line": 9,
+						"column": 10,
+						"height": 1,
+						"width": 20,
+						"bgcolor": 12,
+						"default": global_user.first_name,
+						"fgcolor": 3
+					},
+					{
+						"name": "street",
+						"hint": "Straße und Hausnummer oder # eingeben",
+						"line": 10,
+						"column": 9,
+						"height": 1,
+						"width": 25,
+						"bgcolor": 12,
+						"default": global_user.street,
+						"fgcolor": 3
+					},
+					{
+						"name": "zip",
+						"hint": "Postleitzahl oder # eingeben",
+						"line": 11,
+						"column": 6,
+						"height": 1,
+						"width": 5,
+						"bgcolor": 12,
+						"default": global_user.zip,
+						"fgcolor": 3,
+						"type": "number"
+					},
+					{
+						"name": "city",
+						"hint": "Ort oder # eingeben",
+						"line": 11,
+						"column": 17,
+						"height": 1,
+						"width": 13,
+						"bgcolor": 12,
+						"default": global_user.city,
+						"fgcolor": 3
+					},
+					{
+						"name": "country",
+						"hint": "Land oder # eingeben",
+						"line": 11,
+						"column": 37,
+						"height": 1,
+						"width": 2,
+						"bgcolor": 12,
+						"default": global_user.country,
+						"fgcolor": 3,
+						"type": "alpha",
+						"cursor_home": True,
+						"overwrite": True
+					},
+					{
+						"name": "block_payments",
+						"hint": "j/n oder # eingeben",
+						"line": 13,
+						"column": 25,
+						"height": 1,
+						"width": 1,
+						"bgcolor": 12,
+						"fgcolor": 3,
+						"default": "n",
+						"cursor_home": True,
+						"legal_values": [ "j", "n" ]
+					},
+					{
+						"name": "block_fees",
+						"hint": "j/n oder # eingeben",
+						"line": 14,
+						"column": 25,
+						"height": 1,
+						"width": 1,
+						"bgcolor": 12,
+						"fgcolor": 3,
+						"default": "n",
+						"cursor_home": True,
+						"legal_values": [ "j", "n" ]
+					},
+					{
+						"name": "pocket_money_major",
+						"hint": "0-9 oder # eingeben",
+						"line": 15,
+						"column": 34,
+						"height": 1,
+						"width": 1,
+						"bgcolor": 12,
+						"fgcolor": 3,
+						"default": "9",
+						"type": "number",
+						"cursor_home": True,
+						"overwrite": True
+					},
+					{
+						"name": "pocket_money_minor",
+						"hint": "00-99 oder # eingeben",
+						"line": 15,
+						"column": 36,
+						"height": 1,
+						"width": 2,
+						"bgcolor": 12,
+						"fgcolor": 3,
+						"default": "99",
+						"type": "number",
+						"cursor_home": True,
+						"overwrite": True
+					},
+					{
+						"name": "max_price_major",
+						"hint": "0-9 oder # eingeben",
+						"line": 16,
+						"column": 34,
+						"height": 1,
+						"width": 1,
+						"bgcolor": 12,
+						"fgcolor": 3,
+						"default": "9",
+						"type": "number",
+						"cursor_home": True,
+						"overwrite": True
+					},
+					{
+						"name": "max_price_minor",
+						"hint": "00-99 oder # eingeben",
+						"line": 16,
+						"column": 36,
+						"height": 1,
+						"width": 2,
+						"bgcolor": 12,
+						"fgcolor": 3,
+						"default": "99",
+						"type": "number",
+						"cursor_home": True,
+						"overwrite": True
+					},
+					{
+						"name": "itelex",
+						"hint": "iTelex Tilnehmer oder # eingeben",
+						"line": 18,
+						"column": 25,
+						"height": 1,
+						"width": 8,
+						"bgcolor": 12,
+						"default": global_user.itelex,
+						"fgcolor": 3,
+						"type": "number",
+						"cursor_home": True,
+						"overwrite": True
+					},
+
+				],
+				"confirm": False,
+				"target": "call:User_UI.callback_modify_user",
+			},
+			"publisher_color": 7
+		}
+# User Werte einlesen
+#		try:
+#			user_data = User.get(user_id, ext, True)
+#		except Expression as err:
+#			sys.stderr.write("Fehler: " + pprint.pformat(err) + "\n")
+#		sys.stderr.write("Bre User_Data 2: " + pprint.pformat(ext) + "\n")
+
+		data_cept = bytearray()
+		data_cept.extend(User_UI.create_title("Benutzer ändern"))
+		data_cept.extend(b"\r\n")
+		data_cept.extend(Cept.from_str("Teilnehmernummer:"))
+		data_cept.extend(Cept.from_str(user.user_id))
+		data_cept.extend(Cept.set_cursor(6, 31))
+		data_cept.extend(Cept.from_str("-1"))
+		data_cept.extend(b"\r\n")
+		data_cept.extend(Cept.from_str("Anrede:"))
+		data_cept.extend(b"\r\n")
+		data_cept.extend(Cept.from_str("Name:"))
+# Namen ausgeben
+		data_cept.extend(Cept.set_cursor(8, 7))
+		data_cept.extend(Cept.from_str(user.last_name))
+
+		data_cept.extend(b"\r\n")
+		data_cept.extend(Cept.from_str("Vorname:"))
+		data_cept.extend(b"\r\n")
+		data_cept.extend(Cept.from_str("Straße:"))
+		data_cept.extend(b"\r\n")
+		data_cept.extend(Cept.from_str("PLZ:"))
+		data_cept.extend(Cept.repeat(" ", 7))
+		data_cept.extend(Cept.from_str("Ort:"))
+		data_cept.extend(Cept.set_cursor(11, 31))
+		data_cept.extend(Cept.from_str("Land:"))
+		data_cept.extend(b"\r\n")
+		data_cept.extend(User_UI.line())
+		data_cept.extend(Cept.from_str("Vergütungssperre aktiv:"))
+		data_cept.extend(b"\r\n")
+		data_cept.extend(Cept.from_str("Gebührensperre   aktiv:"))
+		data_cept.extend(b"\r\n")
+		data_cept.extend(Cept.from_str("Taschengeldkonto      :"))
+		data_cept.extend(Cept.set_cursor(15, 35))
+		data_cept.extend(Cept.from_str(",   DM"))
+		data_cept.extend(Cept.from_str("Max. Vergütung/Seite  :"))
+		data_cept.extend(Cept.set_cursor(16, 35))
+		data_cept.extend(Cept.from_str(",   DM"))
+		data_cept.extend(b"\r\n")
+		data_cept.extend(Cept.from_str("iTelex Nummer         :"))
+		data_cept.extend(b"\r\n")
+		data_cept.extend(User_UI.line())
+		data_cept.extend(b"\r\n")
+#		data_cept.extend(Cept.from_str("Kennwort: "))
+#		data_cept.extend(b"\r\n")
+#		data_cept.extend(User_UI.line())
+		return (meta, data_cept)
+#
 
 	def callback_validate_user_id(cls, input_data, dummy):
 		if User.exists(input_data["user_id"]):
@@ -514,9 +803,45 @@ class User_UI:
 			Util.wait_for_ter()
 			return "77"
 
+	def callback_modify_user(cls, input_data, dummy):
+		sys.stderr.write("input_data: " + pprint.pformat(input_data) + "\n")
+		if User.modify(
+			global_user.user_id,
+			"1",
+#			input_data["password"],
+			input_data["salutation"],
+			input_data["last_name"],
+			input_data["first_name"],
+			input_data["street"],
+			input_data["zip"],
+			input_data["city"],
+			input_data["country"],
+			input_data["itelex"]
+		):
+			msg = Util.create_custom_system_message("Benutzer geändert. Bitte neu anmelden. -> #")
+			sys.stdout.buffer.write(msg)
+			sys.stdout.flush()
+			Util.wait_for_ter()
+			return "00000"
+		else:
+			msg = Util.create_custom_system_message("Benutzer konnte nicht geändert werden. -> #")
+			sys.stdout.buffer.write(msg)
+			sys.stdout.flush()
+			Util.wait_for_ter()
+			return "77"
+
+
 	def create_page(user, pagenumber):
 		if pagenumber == "77a":
 			return User_UI.create_add_user()
+		elif pagenumber == "778a":
+#			sys.stderr.write("Bre User_data: " + pprint.pformat(user.last_name) + "\n")
+#			user_data = User.get(user_id, ext, True)
+#			sys.stderr.write("Bre User_data 3: " + pprint.pformat(user_data) + "\n")
+
+			return User_UI.modify_user(user)
+#		elif pagenumber == "779a":
+#			return User_UI.delete_user(user)
 		else:
 			return None
 

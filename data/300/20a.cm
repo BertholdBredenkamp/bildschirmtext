@@ -1,0 +1,22 @@
+<CEPT>
+<ResetPar><reset_12x10_2c><Dbtxlogo>
+<A>10 0a<A>11 1921a</A>
+<go><01><01><cls><ColTab1><Swhite><ColTab0>RetroText<go><02><01><Rblue><go><03><01><Rblue><2h>
+RetroText Testseite
+
+
+<go><10><02><yellow>:<blue><DRCinG0> !"#$%&'()*+,-./0123456789:;<G0inG0><yellow>:
+<go><09><02><yellow>:<blue> !"#$%&'()*+,-./0123456789:;<yellow>:
+
+<go><14><01><blue><DRCinG0> !"#
+<go><15><01><blue><DRCinG0> $%&
+
+<G0inG0>
+<G2inG2>
+<go><17><01><yellow>
+Mein Text auf dieser <br>
+<blink>Seite</blink> mit einer <br>
+Zeilenl<uml>ange größer als <2w>40 <norm>Zeichen die hier weitergehen sollte<br>
+
+
+<go><23><01><Rblue><white>Mein 2. Text<go><24><35>Berthold</CEPT>

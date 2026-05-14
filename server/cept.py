@@ -21,12 +21,15 @@ class Cept_page:
 	drcs_start_for_first_sheet = None
 
 	def __init__(self):
+		sys.stderr.write("Cept_page init: " + pprint.pformat("") + "\n")
 		self.x = 0
 		self.y = -1
 		self.init_new_line()
 
 	def init_new_line(self):
 		self.data_cept = bytearray()
+		sys.stderr.write("Cept_page array: " + pprint.pformat(len(self.data_cept)) + "\n")
+
 		self.data_cept.extend(Cept.clear_line())
 #		sys.stderr.write("self.y: '" + pprint.pformat(self.y) + "'\n")
 #		sys.stderr.write("self.y % lines_per_sheet: '" + pprint.pformat(self.y % lines_per_sheet) + "'\n")
@@ -161,6 +164,8 @@ class Cept_page:
 	def create_new_line(self):
 		self.lines_cept.append(self.data_cept)
 		self.init_new_line()
+#		sys.stderr.write("self.data_cept NewLine: " + pprint.pformat(self.data_cept) + "\n")
+
 
 	# API
 	def set_italics_on(self):
@@ -272,6 +277,8 @@ class Cept_page:
 		for i in range(0, self.lines_per_sheet - len(lines)):
 			data_cept.extend(b'\n')
 			data_cept.extend(Cept.clear_line())
+		sys.stderr.write("self.data_cept_for_sheet: " + pprint.pformat(data_cept) + " - " + pprint.pformat(sheet_number) + "\n")
+
 		return data_cept
 
 	# API
@@ -407,7 +414,11 @@ class Cept_page_from_HTML(Cept_page):
 			elif t1.name == "b":
 				self.set_bold_on()
 				self.print(t1.get_text(), self.ignore_lf)
+#				self.print(t1.get_text())
 				self.set_bold_off()
+# Bre hinzu
+#				sys.stderr.write("Print New Line: \n")
+#				self.print_newline()
 			elif t1.name == "a":
 				if t1["href"].startswith(self.article_prefix): # links to different article
 					if self.current_sheet() != self.prev_sheet:

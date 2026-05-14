@@ -79,9 +79,9 @@ class Login_UI:
 						"name": "user_id",
 						"hint": "Teilnehmernummer oder # eingeben",
 						"line": 18,
-						"column": 26,
+						"column": 24,
 						"height": 1,
-						"width": 10,
+						"width": 12,
 						"bgcolor": 12,
 						"fgcolor": 3
 					},
@@ -102,7 +102,7 @@ class Login_UI:
 						"name": "password",
 						"hint": "Nächstes Feld mit #; Leer für Gast",
 						"line": 20,
-						"column": 26,
+						"column": 24,
 						"height": 1,
 						"width": 14,
 						"bgcolor": 12,
@@ -129,15 +129,15 @@ class Login_UI:
 		data_cept.extend(Cept.repeat("Q", 40))
 		data_cept.extend(Cept.set_fg_color(7))
 		data_cept.extend(Cept.set_left_g0())
-		data_cept.extend(Cept.set_cursor(18, 8))
+		data_cept.extend(Cept.set_cursor(18, 6))
 		data_cept.extend(Cept.from_str("Teilnehmer"))
-		data_cept.extend(Cept.set_cursor(18, 25))
+		data_cept.extend(Cept.set_cursor(18, 23))
 		data_cept.extend(b":")
 		data_cept.extend(Cept.set_cursor(18, 36))
 		data_cept.extend(Cept.set_fg_color(3))
 		data_cept.extend(b'-')
 		data_cept.extend(Cept.set_fg_color(7))
-		data_cept.extend(Cept.set_cursor(20, 8))
+		data_cept.extend(Cept.set_cursor(20, 6))
 		data_cept.extend(Cept.from_str("persönl. Kennwort:"))
 		data_cept.extend(b'\r\n')
 		data_cept.extend(Cept.set_left_g3())

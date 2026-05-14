@@ -7,6 +7,7 @@ class Util:
 	VALIDATE_INPUT_OK = 0
 	VALIDATE_INPUT_BAD = 1
 	VALIDATE_INPUT_RESTART = 2
+	letzter_char = 0
 
 	def readchar():
 		c = sys.stdin.buffer.read(1)
@@ -14,6 +15,9 @@ class Util:
 			sys.stderr.write("client disconnected, shutting down.\n")
 			exit(0)
 		if c[0] <= 0x7f:
+			letzter_char = c[0]
+#			if letzter_char == 0x0 and c[0] == 0x0:
+#				exit()
 			return chr(c[0])
 		else:
 			return chr(0)

@@ -7,7 +7,7 @@ import datetime
 import logging
 
 #l = logging.getLogger("btx." + __name__)
-logging.basicConfig(filename='../errorlog/debug.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename='/home/bb/bildschirmtext/errorlog/debug.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 from cept import Cept
 from user import User
@@ -18,12 +18,15 @@ PATH_MESSAGES = "../messages/"
 class Message:
 	dict = None
 	from_user = None
+	from_user_id = None
+	from_user_ext = None
 	index = None
 
 	def __init__(self, dict, index):
 		self.dict = dict
 		self.index = index
 		self.from_user = User.get(self.dict["from_user_id"], self.dict["from_ext"], self.dict.get("personal_data", False))
+#		self.from_user_id = User.get(self.dict["from_user_id"])
 		if self.from_user is None:
 			sys.stderr.write("from user not found!\n")
 
@@ -34,7 +37,28 @@ class Message:
 	def from_time(self):
 		t = datetime.datetime.fromtimestamp(self.dict["timestamp"])
 		return t.strftime("%H:%M")
+
+	def msg_index(self):
+		return self.index
+
+
+	def from_user_id(self):
+		return self.dict["from_user_id"]
 		
+	def gelesen(self):
+		try:
+			if self.dict["read"]:
+				return True
+			else:
+				return False
+		except:
+#			print("Except finaly")
+			return False		
+
+	def from_user_ext(self):
+		return self.dict["from_ext"]
+
+
 	def body(self):
 		return self.dict["body"]
 
@@ -51,6 +75,7 @@ class Messaging:
 
 	def load_dict(user_id, ext):
 		filename = Messaging.dict_filename(user_id, ext)
+#		print(filename)
 		if not os.path.isfile(filename):
 			sys.stderr.write("messages file not found\n")
 			dict = { "messages": [] }
@@ -62,6 +87,7 @@ class Messaging:
 	def save_dict(user_id, ext, dict):
 		with open(Messaging.dict_filename(user_id, ext), 'w') as f:
 			json.dump(dict, f)
+#			print("Datei gespeichert")
 
 	def load(self):
 		self.dict = Messaging.load_dict(self.user.user_id, self.user.ext)
@@ -71,23 +97,66 @@ class Messaging:
 
 	def select(self, is_read, start, count):
 		self.load()
-
+#		print("Select anzahl: " + str(len(self.dict["messages"])))
 		ms = []
 		j = 0
 		for i in reversed(range(0, len(self.dict["messages"]))):
 			m = self.dict["messages"][i]
+#			print(m)
 			if m.get("read", False) == is_read:
 				if j >= start and (True if count is None else j < start + count):
 					ms.append(Message(m, i))
+#					print("Append Nachricht")
 				j += 1
-
+#		print("J Wert: " + str(j))
 		return ms
+
+	def message_count(self, is_read, start, count):
+		self.load()
+		print("Select anzahl: " + str(len(self.dict["messages"])))
+		ms = []
+		j = 0
+		for i in reversed(range(0, len(self.dict["messages"]))):
+			m = self.dict["messages"][i]
+#			print(m)
+			if m.get("read", False) == is_read:
+				if j >= start and (True if count is None else j < start + count):
+					ms.append(Message(m, i))
+#					print("Append Nachricht")
+				j += 1
+#		print("J Wert: " + str(j))
+		return len(ms)
+
+
 
 	def mark_as_read(self, index):
 		self.load()
+#		print("Index 1: " + str(index))
+#		print(len(self.dict))
+#		print(self.dict["messages"][index])
 		if not self.dict["messages"][index].get("read", False):
 			self.dict["messages"][index]["read"] = True
 			self.save()
+#			print("Mark as Read")
+		else:
+			print("Mark es Read nicht gefunden")
+
+	def remove_message(self, index):
+		self.load()
+		sys.stderr.write("Index 1: " + str(index))
+		sys.stderr.write("Länge : " + str(len(self.dict)) + "\n")
+		sys.stderr.write("MessageIndex : " + str(self.dict["messages"][index]) + "\n")
+		sys.stderr.write("Timestamp : " + str(self.dict["messages"][index].get("timestamp")) + "\n")
+
+		if self.dict["messages"][index].get("read", True):
+#			self.dict["messages"][index]["read"] = True
+			del self.dict["messages"][index]
+			self.save()
+			sys.stderr.write("Bre - Message gelöscht")
+		else:
+			sys.stderr.write("Bre - Nachricht nicht gefunden")
+
+
 
 	def has_new_messages(self):
 		self.load()
@@ -180,6 +249,11 @@ class Messaging_UI:
 		return (meta, data_cept)
 
 	def messaging_create_list(user, is_read):
+#
+		message_count = str(user.messaging.message_count(is_read,0, None))
+#		messages = user.messaging.select(is_read, 0)
+
+
 		meta = {
 			"publisher_name": "!BTX",
 			"include": "a",
@@ -187,7 +261,9 @@ class Messaging_UI:
 			"publisher_color": 7
 		}
 		if is_read:
-			title = "Zurückgelegte Mitteilungen"
+			title = "Zurückgelegte Mitteilungen" + "    Anzahl:" + str(message_count)
+#			title = "Zurückgelegte Mitteilungen"
+
 		else:
 			title = "Neue Mitteilungen"
 		data_cept = bytearray(Messaging_UI.messaging_create_title(title))
@@ -199,6 +275,7 @@ class Messaging_UI:
 		target_prefix = "89" if is_read else "88"
 
 		messages = user.messaging.select(is_read, 0, 9)
+
 
 		for index in range(0, 9):
 			data_cept.extend(Cept.from_str(str(index + 1)) + b'  ')
@@ -237,10 +314,16 @@ class Messaging_UI:
 			"palette": "11a",
 			"clear_screen": True,
 			"links": {
-				"0": "89" if is_read else "88",
-                                "19": "89"
+				"0": "89" if is_read else "88"
 			},
-			"publisher_color": 7
+			"publisher_color": 7,
+			"inputs": {
+				"fields": [
+				],
+				"action": "delete_message" if is_read else "",
+				"target": "page:89" if is_read else "page:88"
+			}
+
 		    }
 
 		from_date = message.from_date()
@@ -291,7 +374,7 @@ class Messaging_UI:
 			b'\x1b\x29\x20\x40'                                    # load DRCs into G1
 			b'\x1b\x7e'                                            # G1 into right charset
 		)
-		data_cept.extend(Cept.from_str(" Übersicht                   19 Löschen"))
+		data_cept.extend(Cept.from_str(" Übersicht"))
 #		data_cept.extend(Cept.repeat(" ", 11))
 
 		user.messaging.mark_as_read(message.index)
